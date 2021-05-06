@@ -10,8 +10,8 @@ import Foundation
 public extension RobinhoodClient {
 
     struct PaginatedResponse<T: Codable>: Codable {
-        @SafeOptionalValue var next: URL?
-        @SafeOptionalValue var previous: URL?
+        @SafeOptionalValue public var next: URL?
+        @SafeOptionalValue public var previous: URL?
         public let results: [T]
     }
 

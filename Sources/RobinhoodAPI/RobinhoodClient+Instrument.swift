@@ -40,7 +40,7 @@ public extension RobinhoodClient {
         public let state: String
         public let symbol: String
         public let tradability: String
-        public let tradableChainId: String
+        public let tradableChainId: String?
         public let tradeable: Bool
         public let type: String
         @SafeValue public var url: URL
