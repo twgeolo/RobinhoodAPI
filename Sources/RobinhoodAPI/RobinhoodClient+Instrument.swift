@@ -10,8 +10,8 @@ import Combine
 
 public extension RobinhoodClient {
 
-    struct Instrument: Codable {
-        public let bloombergUnique: String
+    struct StockInstrument: Codable {
+        @SafeOptionalValue public var bloombergUnique: String?
         public let country: String
         @SafeValue public var dayTradeRatio: Float
         @SafeValue public var defaultCollarFraction: Float
@@ -82,13 +82,25 @@ public extension RobinhoodClient {
         }
     }
 
-    func instrumentPublisher(url: URL) -> AnyPublisher<Instrument, Error> {
+    func stockInstrumentPublisher(symbol: String) -> AnyPublisher<PaginatedResponse<StockInstrument>, Error> {
+        var components = URLComponents(string: "https://api.robinhood.com/instruments/")
+        components?.queryItems = [URLQueryItem(name: "symbol", value: symbol)]
+        return getRequestPublisher(
+            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
+            url: components!.url!
+        )
+        .map { $0.data }
+        .decode(type: PaginatedResponse<StockInstrument>.self, decoder: JSONDecoder())
+        .eraseToAnyPublisher()
+    }
+
+    func stockInstrumentPublisher(url: URL) -> AnyPublisher<StockInstrument, Error> {
         return getRequestPublisher(
             token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
             url: url
         )
         .map { $0.data }
-        .decode(type: Instrument.self, decoder: JSONDecoder())
+        .decode(type: StockInstrument.self, decoder: JSONDecoder())
         .eraseToAnyPublisher()
     }
 
