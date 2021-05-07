@@ -21,8 +21,13 @@ extension Date: LosslessStringConvertible {
     public init?(_ description: String) {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: description) else { return nil }
-        self = date
+        if let date = formatter.date(from: description) {
+            self = date
+        } else {
+            formatter.formatOptions = [.withInternetDateTime]
+            guard let date = formatter.date(from: description) else { return nil }
+            self = date
+        }
     }
 
 }
@@ -30,7 +35,7 @@ extension Date: LosslessStringConvertible {
 public typealias CLSC = Codable & LosslessStringConvertible
 
 @propertyWrapper
-public struct SafeValue<T: CLSC>: Codable {
+public struct SafeValue<T: CLSC>: Codable, CustomStringConvertible {
 
     public var wrappedValue: T
 
@@ -54,10 +59,14 @@ public struct SafeValue<T: CLSC>: Codable {
     public func encode(to encoder: Encoder) throws {
         try wrappedValue.encode(to: encoder)
     }
+
+    public var description: String {
+        String(describing: wrappedValue)
+    }
 }
 
 @propertyWrapper
-public struct SafeOptionalValue<T: CLSC>: Codable {
+public struct SafeOptionalValue<T: CLSC>: Codable, CustomStringConvertible {
 
     public var wrappedValue: T?
 
@@ -84,5 +93,13 @@ public struct SafeOptionalValue<T: CLSC>: Codable {
 
     public func encode(to encoder: Encoder) throws {
         try wrappedValue.encode(to: encoder)
+    }
+
+    public var description: String {
+        if let value = wrappedValue {
+            return String(describing: value)
+        } else {
+            return "nil"
+        }
     }
 }

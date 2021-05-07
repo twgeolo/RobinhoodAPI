@@ -83,11 +83,10 @@ public extension RobinhoodClient {
     }
 
     func stockInstrumentPublisher(symbol: String) -> AnyPublisher<PaginatedResponse<StockInstrument>, Error> {
-        var components = URLComponents(string: "https://api.robinhood.com/instruments/")
-        components?.queryItems = [URLQueryItem(name: "symbol", value: symbol)]
         return getRequestPublisher(
             token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: components!.url!
+            url: URL(string: "https://api.robinhood.com/instruments/")!,
+            queryItems: [URLQueryItem(name: "symbol", value: symbol)]
         )
         .map { $0.data }
         .decode(type: PaginatedResponse<StockInstrument>.self, decoder: JSONDecoder())
@@ -101,6 +100,68 @@ public extension RobinhoodClient {
         )
         .map { $0.data }
         .decode(type: StockInstrument.self, decoder: JSONDecoder())
+        .eraseToAnyPublisher()
+    }
+
+    struct OptionsInstrument: Codable, RobinhoodAPIStructStringConvertible {
+        public let chainId: String
+        public let chainSymbol: String
+        @SafeValue public var createdAt: Date
+        public let expirationDate: String
+        public let id: String
+        public let issueDate: String
+        public let minTicks: OptionsChain.MinTicks
+        public let rhsTradability: String
+        @SafeOptionalValue public var selloutDatetime: Date?
+        public let state: String
+        @SafeValue public var strikePrice: Float
+        public let tradability: String
+        public let type: String
+        @SafeValue public var updatedAt: Date
+        @SafeValue public var url: URL
+
+        private enum CodingKeys: String, CodingKey {
+            case chainId = "chain_id"
+            case chainSymbol = "chain_symbol"
+            case createdAt = "created_at"
+            case expirationDate = "expiration_date"
+            case id
+            case issueDate = "issue_date"
+            case minTicks = "min_ticks"
+            case rhsTradability = "rhs_tradability"
+            case selloutDatetime = "sellout_datetime"
+            case state
+            case strikePrice = "strike_price"
+            case tradability
+            case type
+            case updatedAt = "updated_at"
+            case url
+        }
+    }
+
+    enum OptionsType: String {
+        case both
+        case call
+        case put
+    }
+
+    func optionsInstrumentPublisher(chainId: String, expirationDate: String, type: OptionsType = .both) -> AnyPublisher<PaginatedResponse<OptionsInstrument>, Error> {
+        var queryItems = [
+            URLQueryItem(name: "chain_id", value: chainId),
+            URLQueryItem(name: "expiration_dates", value: expirationDate),
+            URLQueryItem(name: "state", value: "active"),
+            URLQueryItem(name: "tradability", value: "tradable")
+        ]
+        if type != .both {
+            queryItems.append(URLQueryItem(name: "type", value: type.rawValue))
+        }
+        return getRequestPublisher(
+            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
+            url: URL(string: "https://api.robinhood.com/options/instruments/")!,
+            queryItems: queryItems
+        )
+        .map { $0.data }
+        .decode(type: PaginatedResponse<OptionsInstrument>.self, decoder: JSONDecoder())
         .eraseToAnyPublisher()
     }
 

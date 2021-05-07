@@ -43,7 +43,7 @@ public extension RobinhoodClient {
             }
         }
 
-        public struct MinTicks: Codable {
+        public struct MinTicks: Codable, RobinhoodAPIStructStringConvertible {
             @SafeValue public var aboveTick: Float
             @SafeValue public var belowTick: Float
             @SafeValue public var cutoffPrice: Float

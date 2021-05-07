@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 
+let APIHost = "https://api.robinhood.com/"
+
 @available(iOS 13, macOS 11.0, tvOS 13, watchOS 6.0, *)
 public class RobinhoodClient {
 
@@ -18,8 +20,6 @@ public class RobinhoodClient {
         self.username = username
         self.password = password
     }
-
-    let APIHost = "https://api.robinhood.com/"
 
     @Published var lastAuthSuccessResponse: AuthSuccessResponse?
 
