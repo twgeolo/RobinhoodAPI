@@ -15,7 +15,7 @@ public extension RobinhoodClient {
         @SafeOptionalValue public var previous: URL?
         public let results: [T]
     }
-    
+
     func allResultsPublisher<T: Codable>(for response: PaginatedResponse<T>) -> AnyPublisher<[T], Error> {
         func publisher(url: URL) -> AnyPublisher<PaginatedResponse<T>, Error> {
             return getRequestPublisher(
@@ -45,13 +45,15 @@ public extension RobinhoodClient {
         }
         if let next = response.next {
             return recurse(url: next)
+                .map { $0 + response.results }
+                .eraseToAnyPublisher()
         } else {
             return Just(response.results)
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         }
     }
-    
+
     func allResultsPublisher<T: Codable>(for publisher: AnyPublisher<PaginatedResponse<T>, Error>) -> AnyPublisher<[T], Error> {
         return publisher
             .flatMap { [weak self] response -> AnyPublisher<[T], Error> in

@@ -10,15 +10,15 @@ import Combine
 
 public extension RobinhoodClient {
 
-    struct OptionsChain: Codable {
+    struct Options: Codable {
         public let canOpenPosition: Bool
         public let cashComponent: String?
         public let expirationDates: [String]
         public let id: String
-        public let minTicks: OptionsChain.MinTicks
+        public let minTicks: Options.MinTicks
         public let symbol: String
         @SafeValue public var tradeValueMultiplier: Float
-        public let underlyingInstruments: [OptionsChain.Instrument]
+        public let underlyingInstruments: [Options.Instrument]
 
         private enum CodingKeys: String, CodingKey {
             case canOpenPosition = "can_open_position"
@@ -56,7 +56,7 @@ public extension RobinhoodClient {
         }
     }
 
-    func optionChainsPublisher(symbol: String) -> AnyPublisher<OptionsChain, Error> {
+    func optionChainsPublisher(symbol: String) -> AnyPublisher<Options, Error> {
         return stockInstrumentPublisher(symbol: symbol)
             .mapError { $0 as Error }
             .map { $0.results.first?.tradableChainId }
@@ -69,7 +69,7 @@ public extension RobinhoodClient {
                 .eraseToAnyPublisher()
             }
             .map { $0.data }
-            .decode(type: OptionsChain.self, decoder: JSONDecoder())
+            .decode(type: Options.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
 

@@ -110,7 +110,7 @@ public extension RobinhoodClient {
         public let expirationDate: String
         public let id: String
         public let issueDate: String
-        public let minTicks: OptionsChain.MinTicks
+        public let minTicks: Options.MinTicks
         public let rhsTradability: String
         @SafeOptionalValue public var selloutDatetime: Date?
         public let state: String
