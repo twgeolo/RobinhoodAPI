@@ -225,13 +225,7 @@ public extension RobinhoodClient {
     }
 
     func accountsPublisher() -> AnyPublisher<PaginatedResponse<Account>, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: URL(string: "\(APIHost)accounts/")!
-        )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<Account>.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
+        return simpleGETPublisher(url: URL(string: "\(APIHost)accounts/")!)
     }
 
 }
@@ -293,14 +287,10 @@ public extension RobinhoodClient {
     }
 
     private func _positionsPublisher(onlyOpen: Bool) -> AnyPublisher<PaginatedResponse<Position>, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
+        return simpleGETPublisher(
             url: URL(string: "\(APIHost)positions/")!,
             queryItems: onlyOpen ? [URLQueryItem(name: "nonzero", value: "true")] : nil
         )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<Position>.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
     }
 
 }

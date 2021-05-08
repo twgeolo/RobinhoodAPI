@@ -197,7 +197,7 @@ public extension RobinhoodClient {
     }
 
     func allStockOrdersPublisher() -> AnyPublisher<PaginatedResponse<StockOrder>, Error> {
-        return stockOrdersPublisher(url: URL(string: "\(APIHost)orders/")!)
+        return simpleGETPublisher(url: URL(string: "\(APIHost)orders/")!)
     }
 
     func openStockOrdersPublisher() -> AnyPublisher<PaginatedResponse<StockOrder>, Error> {
@@ -213,7 +213,7 @@ public extension RobinhoodClient {
     }
 
     func allOptionsOrdersPublisher() -> AnyPublisher<PaginatedResponse<OptionsOrder>, Error> {
-        return optionsOrdersPublisher(url: URL(string: "\(APIHost)options/orders/")!)
+        return simpleGETPublisher(url: URL(string: "\(APIHost)options/orders/")!)
     }
 
     func openOptionsOrdersPublisher() -> AnyPublisher<PaginatedResponse<OptionsOrder>, Error> {
@@ -225,26 +225,6 @@ public extension RobinhoodClient {
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
-    }
-
-    func stockOrdersPublisher(url: URL) -> AnyPublisher<PaginatedResponse<StockOrder>, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: url
-        )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<StockOrder>.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
-    }
-
-    func optionsOrdersPublisher(url: URL) -> AnyPublisher<PaginatedResponse<OptionsOrder>, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: url
-        )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<OptionsOrder>.self, decoder: JSONDecoder())
         .eraseToAnyPublisher()
     }
 

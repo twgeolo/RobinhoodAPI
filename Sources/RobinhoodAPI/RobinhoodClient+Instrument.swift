@@ -83,24 +83,14 @@ public extension RobinhoodClient {
     }
 
     func stockInstrumentPublisher(symbol: String) -> AnyPublisher<PaginatedResponse<StockInstrument>, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
+        return simpleGETPublisher(
             url: URL(string: "https://api.robinhood.com/instruments/")!,
             queryItems: [URLQueryItem(name: "symbol", value: symbol)]
         )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<StockInstrument>.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
     }
 
     func stockInstrumentPublisher(url: URL) -> AnyPublisher<StockInstrument, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: url
-        )
-        .map { $0.data }
-        .decode(type: StockInstrument.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
+        return simpleGETPublisher(url: url)
     }
 
     struct OptionsInstrument: Codable, RobinhoodAPIStructStringConvertible {
@@ -155,14 +145,10 @@ public extension RobinhoodClient {
         if type != .both {
             queryItems.append(URLQueryItem(name: "type", value: type.rawValue))
         }
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
+        return simpleGETPublisher(
             url: URL(string: "https://api.robinhood.com/options/instruments/")!,
             queryItems: queryItems
         )
-        .map { $0.data }
-        .decode(type: PaginatedResponse<OptionsInstrument>.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
     }
 
 }

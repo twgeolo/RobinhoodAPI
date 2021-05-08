@@ -8,9 +8,9 @@
 import Foundation
 import Combine
 
-extension RobinhoodClient {
+internal extension RobinhoodClient {
 
-    func getRequestPublisher(
+    static func getRequestPublisher(
         token: String,
         url: URL,
         queryItems: [URLQueryItem]? = nil,
@@ -34,7 +34,7 @@ extension RobinhoodClient {
         return URLSession.shared.dataTaskPublisher(for: request)
     }
 
-    func postRequestPublisher(
+    static func postRequestPublisher(
         url: URL,
         body: Any? = nil,
         headerFields: [String: String]? = nil

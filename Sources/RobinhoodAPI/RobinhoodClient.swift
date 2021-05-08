@@ -21,6 +21,28 @@ public class RobinhoodClient {
         self.password = password
     }
 
-    @Published var lastAuthSuccessResponse: AuthSuccessResponse?
+    internal struct AuthMetadata: Codable, Equatable {
+        let accessToken: String
+        let expiresIn: Date
+    }
+
+    private var _authMetadata: AuthMetadata?
+    internal var authMetadata: AuthMetadata? {
+        get {
+            if _authMetadata == nil {
+                guard let encoded = UserDefaults.standard.data(forKey: String(describing: AuthMetadata.self)),
+                      let decoded = try? JSONDecoder().decode(AuthMetadata.self, from: encoded) else { return nil }
+                _authMetadata = decoded
+            }
+            return _authMetadata
+        }
+        set {
+            if _authMetadata != newValue {
+                guard let encoded = try? JSONEncoder().encode(newValue) else { return }
+                UserDefaults.standard.set(encoded, forKey: String(describing: AuthMetadata.self))
+                _authMetadata = newValue
+            }
+        }
+    }
 
 }

@@ -92,7 +92,7 @@ public extension RobinhoodClient {
         if let challengeType = challengeType {
             body["challenge_type"] = challengeType
         }
-        return postRequestPublisher(
+        return Self.postRequestPublisher(
             url: URL(string: "\(APIHost)oauth2/token/")!,
             body: body,
             headerFields: headerFields
@@ -114,17 +114,42 @@ public extension RobinhoodClient {
                 }
                 return .failure(data: output.data, response: output.response)
             }
-            self.lastAuthSuccessResponse = response
+            self.authMetadata = AuthMetadata(
+                accessToken: response.accessToken,
+                expiresIn: Date().addingTimeInterval(TimeInterval(response.expiresIn))
+            )
             return .success(response: response)
         }
         .eraseToAnyPublisher()
+    }
+
+    internal func tokenPublisher() -> AnyPublisher<String, Error> {
+        guard let authMetadata = authMetadata else {
+            return Fail(error: RequestError.unknown(description: "User did not authenticate"))
+                .eraseToAnyPublisher()
+        }
+        if authMetadata.expiresIn < Date().addingTimeInterval(-10) {
+            return authPublisher()
+                .tryMap { response in
+                    if case let .success(successResponse) = response {
+                        return successResponse.accessToken
+                    } else {
+                        throw RequestError.unknown(description: "Auth failed")
+                    }
+                }
+                .eraseToAnyPublisher()
+        } else {
+            return Just(authMetadata.accessToken)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        }
     }
 
     func validateChallengePublisher(
         challenge: AuthChallenge,
         response: String
     ) -> AnyPublisher<AuthChallenge, Error> {
-        return postRequestPublisher(
+        return Self.postRequestPublisher(
             url: URL(string: "\(APIHost)challenge/\(challenge.id)/respond/")!,
             body: ["response": response]
         )

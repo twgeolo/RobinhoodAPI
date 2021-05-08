@@ -57,19 +57,15 @@ public extension RobinhoodClient {
     }
 
     func optionChainsPublisher(symbol: String) -> AnyPublisher<Options, Error> {
-        return stockInstrumentPublisher(symbol: symbol)
-            .mapError { $0 as Error }
-            .map { $0.results.first?.tradableChainId }
-            .flatMap { chainId in
-                self.getRequestPublisher(
-                    token: self.lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-                    url: URL(string: "https://api.robinhood.com/options/chains/\(chainId!)/")!
-                )
-                .mapError { $0 as Error }
-                .eraseToAnyPublisher()
+        stockInstrumentPublisher(symbol: symbol)
+            .flatMap { [weak self] instrument -> AnyPublisher<Options, Error> in
+                guard let strongSelf = self else {
+                    return Fail(error: RequestError.unknown(description: "RobinhoodClient deallocated"))
+                        .eraseToAnyPublisher()
+                }
+                let chainId = instrument.results.first!.tradableChainId!
+                return strongSelf.simpleGETPublisher(url: URL(string: "https://api.robinhood.com/options/chains/\(chainId)/")!)
             }
-            .map { $0.data }
-            .decode(type: Options.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
 

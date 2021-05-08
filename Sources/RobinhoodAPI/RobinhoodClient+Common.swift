@@ -18,13 +18,7 @@ public extension RobinhoodClient {
 
     func allResultsPublisher<T: Codable>(for response: PaginatedResponse<T>) -> AnyPublisher<[T], Error> {
         func publisher(url: URL) -> AnyPublisher<PaginatedResponse<T>, Error> {
-            return getRequestPublisher(
-                token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-                url: url
-            )
-            .map { $0.data }
-            .decode(type: PaginatedResponse<T>.self, decoder: JSONDecoder())
-            .eraseToAnyPublisher()
+            return simpleGETPublisher(url: url)
         }
         func recurse(url: URL) -> AnyPublisher<[T], Error> {
             return publisher(url: url)
@@ -64,6 +58,22 @@ public extension RobinhoodClient {
                 }
                 return strongSelf.allResultsPublisher(for: response)
             }
+            .eraseToAnyPublisher()
+    }
+
+    internal func simpleGETPublisher<T: Codable>(url: URL, queryItems: [URLQueryItem]? = nil, headerFields: [String: String]? = nil) -> AnyPublisher<T, Error> {
+        return tokenPublisher()
+            .flatMap {
+                Self.getRequestPublisher(
+                    token: $0,
+                    url: url,
+                    queryItems: queryItems,
+                    headerFields: headerFields
+                )
+                .mapError { $0 as Error }
+            }
+            .map { $0.data }
+            .decode(type: T.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
 

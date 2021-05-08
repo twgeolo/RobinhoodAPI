@@ -79,13 +79,7 @@ public extension RobinhoodClient {
     }
 
     func optionsMarketdataPublisher(id: String) -> AnyPublisher<OptionsChain, Error> {
-        return getRequestPublisher(
-            token: lastAuthSuccessResponse!.accessToken, // FIXME: Auth
-            url: URL(string: "https://api.robinhood.com/marketdata/options/\(id)/")!
-        )
-        .map { $0.data }
-        .decode(type: OptionsChain.self, decoder: JSONDecoder())
-        .eraseToAnyPublisher()
+        return simpleGETPublisher(url: URL(string: "https://api.robinhood.com/marketdata/options/\(id)/")!)
     }
 
 }
