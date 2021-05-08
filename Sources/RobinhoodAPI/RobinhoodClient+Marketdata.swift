@@ -82,4 +82,55 @@ public extension RobinhoodClient {
         return simpleGETPublisher(url: URL(string: "https://api.robinhood.com/marketdata/options/\(id)/")!)
     }
 
+    public struct Quotes: Codable {
+        @SafeValue public var adjustedPreviousClose: Float
+        @SafeValue public var askPrice: Float
+        public let askSize: Int
+        @SafeValue public var bidPrice: Float
+        public let bidSize: Int
+        public let hasTraded: Bool
+        @SafeValue public var instrument: URL
+        public let instrumentId: String
+        @SafeValue public var lastExtendedHoursTradePrice: Float
+        @SafeValue public var lastTradePrice: Float
+        public let lastTradePriceSource: String
+        @SafeValue public var previousClose: Float
+        public let previousCloseDate: String
+        public let symbol: String
+        public let tradingHalted: Bool
+        @SafeValue public var updatedAt: Date
+
+        private enum CodingKeys: String, CodingKey {
+            case adjustedPreviousClose = "adjusted_previous_close"
+            case askPrice = "ask_price"
+            case askSize = "ask_size"
+            case bidPrice = "bid_price"
+            case bidSize = "bid_size"
+            case hasTraded = "has_traded"
+            case instrument
+            case instrumentId = "instrument_id"
+            case lastExtendedHoursTradePrice = "last_extended_hours_trade_price"
+            case lastTradePrice = "last_trade_price"
+            case lastTradePriceSource = "last_trade_price_source"
+            case previousClose = "previous_close"
+            case previousCloseDate = "previous_close_date"
+            case symbol
+            case tradingHalted = "trading_halted"
+            case updatedAt = "updated_at"
+        }
+    }
+
+    func quotesMarketdataPublisher(symbol: String) -> AnyPublisher<Quotes, Error> {
+        stockInstrumentPublisher(symbol: symbol)
+            .flatMap { [weak self] instrument -> AnyPublisher<Quotes, Error> in
+                guard let strongSelf = self else {
+                    return Fail(error: RequestError.unknown(description: "RobinhoodClient deallocated"))
+                        .eraseToAnyPublisher()
+                }
+                let id = instrument.results.first!.id
+                return strongSelf.simpleGETPublisher(url: URL(string: "https://api.robinhood.com/marketdata/quotes/\(id)/")!)
+            }
+            .eraseToAnyPublisher()
+    }
+
 }
